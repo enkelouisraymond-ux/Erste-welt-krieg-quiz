@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Der Erste Weltkrieg – Interaktives Quiz</title>
+<style>
+:root{--bg:#0b1220;--panel:#121e31;--panel2:#1a2940;--text:#f3f6fb;--muted:#b8c5d8;--accent:#78a9ff;--good:#49c58a;--bad:#ff7d83}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#0b1220,#14243a);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+main{max-width:820px;margin:auto;padding:28px 16px 60px}
+header{text-align:center;padding:20px 8px 24px} .eyebrow{color:var(--accent);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.78rem}
+h1{font-size:clamp(2rem,6vw,3.2rem);line-height:1.08;margin:10px 0}header p{color:var(--muted);max-width:600px;margin:12px auto}
+.card{background:rgba(18,30,49,.96);border:1px solid #2b3d58;border-radius:20px;padding:clamp(18px,4vw,30px);box-shadow:0 18px 55px #0004}
+.topline{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:.92rem;margin-bottom:12px}
+.track{height:9px;background:#293951;border-radius:20px;overflow:hidden;margin-bottom:25px}.fill{height:100%;background:linear-gradient(90deg,#5b8fff,#68d5b0);width:0;transition:width .25s}
+h2{font-size:1.35rem;margin:0 0 18px}.answers{display:grid;gap:10px}
+button{font:inherit;cursor:pointer}
+.answer{background:var(--panel2);color:var(--text);border:1px solid #354b69;border-radius:12px;padding:14px 16px;text-align:left;transition:.15s}
+.answer:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+.answer:disabled{cursor:default;opacity:1}.answer.correct{border-color:var(--good);background:#123a32}.answer.wrong{border-color:var(--bad);background:#43252d}
+.feedback{margin-top:16px;padding:14px;border-radius:12px;background:#202f45;color:var(--muted);display:none}.feedback.show{display:block}.feedback strong{color:var(--text)}
+.actions{display:flex;justify-content:space-between;gap:10px;margin-top:20px;align-items:center}
+.primary,.secondary{border:0;border-radius:12px;padding:12px 18px;font-weight:700}
+.primary{background:var(--accent);color:#071426}.primary:disabled{opacity:.35;cursor:not-allowed}
+.secondary{background:#273951;color:var(--text)}
+.small{color:var(--muted);font-size:.88rem}.result{text-align:center}.score{font-size:3.4rem;font-weight:800;color:var(--good);line-height:1.2;margin:14px}
+.result ul{text-align:left;color:var(--muted);padding-left:22px}.hidden{display:none}
+footer{text-align:center;color:#9eacc0;font-size:.82rem;margin-top:18px}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="eyebrow">Geschichte · Lernquiz</div>
+<h1>Der Erste Weltkrieg</h1>
+<p>Teste dein Wissen mit 20 Fragen. Wähle jeweils eine Antwort und lies die Erklärung, bevor du weitermachst.</p>
+</header>
+<section class="card" id="quiz">
+<div class="topline"><span id="counter">Frage 1 von 20</span><span id="points">Punkte: 0</span></div>
+<div class="track"><div class="fill" id="bar"></div></div>
+<h2 id="question"></h2>
+<div class="answers" id="answers"></div>
+<div class="feedback" id="feedback" aria-live="polite"></div>
+<div class="actions"><span class="small" id="hint">Eine Antwort auswählen.</span><button class="primary" id="next" disabled>Weiter</button></div>
+</section>
+<section class="card result hidden" id="result">
+<div class="eyebrow">Quiz abgeschlossen</div><h2>Dein Ergebnis</h2>
+<div class="score" id="finalscore"></div><p id="message"></p>
+<div id="review"></div>
+<div class="actions" style="justify-content:center"><button class="primary" onclick="restart()">Noch einmal spielen</button><button class="secondary" onclick="window.print()">Ergebnis drucken</button></div>
+</section>
+<footer>Ein Lernquiz auf Grundlage deines Arbeitsblatts · Viel Erfolg!</footer>
+</main>
+<script>
+const questions = [
+{q:"In welchem Zeitraum fand der Erste Weltkrieg statt?",a:["1912–1916","1914–1918","1916–1920","1918–1922"],c:1,e:"Der Erste Weltkrieg dauerte von 1914 bis 1918."},
+{q:"Welches Ereignis gilt als Auslöser des Ersten Weltkriegs?",a:["Der Beginn der Russischen Revolution","Der Anschlag von Sarajevo","Der Fall der Berliner Mauer","Der Angriff auf Polen"],c:1,e:"Das Attentat von Sarajevo am 28. Juni 1914 gilt als Auslöser der Julikrise."},
+{q:"Wer wurde am 28. Juni 1914 in Sarajevo ermordet?",a:["Kaiser Wilhelm II.","Franz Ferdinand und seine Frau Sophie","Der russische Zar","Der französische Präsident"],c:1,e:"Der österreichische Thronfolger Franz Ferdinand und seine Frau wurden in Sarajevo ermordet."},
+{q:"Welches Land erklärte Serbien am 28. Juli 1914 den Krieg?",a:["Frankreich","Russland","Österreich-Ungarn","Großbritannien"],c:2,e:"Österreich-Ungarn erklärte Serbien am 28. Juli 1914 den Krieg."},
+{q:"Wie reagierten viele Menschen zu Beginn des Krieges laut Arbeitsblatt?",a:["Sie jubelten den Soldaten zu.","Sie feierten das Kriegsende.","Sie verließen alle Städte.","Sie gründeten eine Republik."],c:0,e:"Laut Arbeitsblatt waren viele Menschen anfangs begeistert und jubelten den Soldaten zu."},
+{q:"An wie vielen Fronten kämpfte Deutschland gleichzeitig?",a:["An einer Front","An zwei Fronten","An drei Fronten","An vier Fronten"],c:1,e:"Deutschland kämpfte im Osten und im Westen."},
+{q:"Gegen welches Land kämpfte Deutschland im Osten?",a:["Spanien","Russland","Belgien","Italien"],c:1,e:"Im Osten kämpfte Deutschland gegen Russland."},
+{q:"Gegen welche Länder kämpfte Deutschland im Westen?",a:["Frankreich und Belgien","Russland und Serbien","Italien und Spanien","Schweden und Norwegen"],c:0,e:"Im Westen kämpfte Deutschland gegen Frankreich und Belgien."},
+{q:"Was geschah im September 1914 in der Schlacht an der Marne?",a:["Die USA traten in den Krieg ein.","Die deutschen Truppen wurden gestoppt.","Der Waffenstillstand wurde unterschrieben.","Die Schlacht von Verdun begann."],c:1,e:"Belgier und Franzosen stoppten mit britischer Unterstützung die deutschen Truppen."},
+{q:"Was bedeutet „Stellungskrieg“?",a:["Ein Krieg auf dem Meer","Ein Krieg, in dem sich die Front kaum bewegt","Ein Krieg ohne Soldaten","Ein schneller Vormarsch"],c:1,e:"Beim Stellungskrieg stehen sich die Truppen an der Front gegenüber; die Front bewegt sich kaum."},
+{q:"Was bedeutet „Grabenkrieg“?",a:["Krieg in den Bergen","Krieg mit Schiffen","Krieg mit Schützengräben","Krieg aus der Luft"],c:2,e:"Die Soldaten nutzten Schützengräben zur Verteidigung."},
+{q:"Was bedeutet „Materialschlacht“?",a:["Eine Schlacht mit sehr hohem Verbrauch an Waffen und Munition","Ein Wettkampf um Rohstoffe","Eine Schlacht ohne Waffen","Ein Friedensvertrag"],c:0,e:"In einer Materialschlacht verbrauchten die Truppen extrem viele Waffen und Munition."},
+{q:"Welche Waffe setzte Deutschland laut Arbeitsblatt 1915 erstmals ein?",a:["Giftgas","Raketen","Drohnen","Atomwaffen"],c:0,e:"Auf dem Arbeitsblatt steht, dass Deutschland 1915 erstmals Giftgas einsetzte."},
+{q:"Welche weiteren modernen Waffen nennt das Arbeitsblatt?",a:["Flammenwerfer und Panzer","Pfeil und Bogen","Drohnen und Raketen","Armbrüste und Katapulte"],c:0,e:"Das Arbeitsblatt nennt Flammenwerfer und Panzer als weitere moderne Waffen."},
+{q:"In welchem Jahr fand die Schlacht von Verdun statt?",a:["1914","1915","1916","1918"],c:2,e:"Die Schlacht von Verdun fand 1916 statt und dauerte zehn Monate."},
+{q:"In welchem Land fand die Schlacht von Verdun statt?",a:["Belgien","Frankreich","Deutschland","Russland"],c:1,e:"Verdun liegt in Frankreich."},
+{q:"In welchem Jahr traten die Amerikaner in den Krieg ein?",a:["1914","1915","1917","1918"],c:2,e:"Die USA traten 1917 in den Ersten Weltkrieg ein."},
+{q:"An welchem Datum wurde der Waffenstillstand unterschrieben?",a:["28. Juni 1914","28. Juli 1914","11. November 1918","28. Juni 1919"],c:2,e:"Der Waffenstillstand wurde am 11. November 1918 unterschrieben."},
+{q:"Was geschah nach der Niederlage Deutschlands mit der Monarchie?",a:["Sie wurde stärker.","Sie fiel; eine Republik wurde gegründet.","Deutschland wurde ein Königreich.","Die Monarchie wurde nach Frankreich verlegt."],c:1,e:"Nach der Niederlage fiel die Monarchie; die Weimarer Republik wurde gegründet."},
+{q:"Wie viele weitere Menschen starben laut Arbeitsblatt zusätzlich zu den etwa 10 Millionen gefallenen Soldaten?",a:["2 Millionen","5 Millionen","7 Millionen","12 Millionen"],c:2,e:"Das Arbeitsblatt nennt 7 Millionen weitere Tote."}
+];
+let index=0, score=0, answered=false, wrong=[];
+const $=id=>document.getElementById(id);
+function render(){
+ answered=false;$("counter").textContent=`Frage ${index+1} von ${questions.length}`;
+ $("points").textContent=`Punkte: ${score}`;$("bar").style.width=`${index/questions.length*100}%`;
+ const q=questions[index];$("question").textContent=q.q;$("answers").innerHTML="";
+ q.a.forEach((v,i)=>{const b=document.createElement("button");b.className="answer";b.textContent=String.fromCharCode(65+i)+". "+v;b.onclick=()=>choose(i,b);$("answers").appendChild(b)});
+ $("feedback").className="feedback";$("feedback").textContent="";$("next").disabled=true;$("next").textContent=index===questions.length-1?"Ergebnis anzeigen":"Weiter";$("hint").textContent="Eine Antwort auswählen.";
+}
+function choose(i,btn){
+ if(answered)return;answered=true;const q=questions[index];const buttons=[...$("answers").children];
+ buttons.forEach((b,n)=>{b.disabled=true;if(n===q.c)b.classList.add("correct")});
+ if(i===q.c){score++;$("feedback").innerHTML="<strong>Richtig!</strong> "+q.e;$("hint").textContent="+1 Punkt"}else{btn.classList.add("wrong");wrong.push({q:q.q,correct:q.a[q.c]});$("feedback").innerHTML="<strong>Nicht ganz.</strong> Richtige Antwort: "+q.a[q.c]+". "+q.e;$("hint").textContent="0 Punkte"}
+ $("feedback").classList.add("show");$("points").textContent=`Punkte: ${score}`;$("next").disabled=false;
+}
+$("next").onclick=()=>{if(index<questions.length-1){index++;render()}else finish()};
+function finish(){
+ $("quiz").classList.add("hidden");$("result").classList.remove("hidden");$("finalscore").textContent=`${score} / ${questions.length}`;
+ $("message").textContent=score>=18?"Ausgezeichnet! Du kennst dich sehr gut mit dem Ersten Weltkrieg aus.":score>=14?"Gut gemacht! Wiederhole noch die Fragen, die schwierig waren.":"Gute Übung! Lies die Erklärungen noch einmal und versuche es erneut.";
+ $("review").innerHTML=wrong.length?`<h3>Das kannst du noch wiederholen:</h3><ul>${wrong.map(x=>`<li><strong>${x.q}</strong><br>Richtige Antwort: ${x.correct}</li>`).join("")}</ul>`:"<p>Alle Fragen richtig beantwortet – klasse!</p>";
+}
+function restart(){index=0;score=0;answered=false;wrong=[];$("result").classList.add("hidden");$("quiz").classList.remove("hidden");render()}
+render();
+</script>
+</body>
+</html>
